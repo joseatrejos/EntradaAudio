@@ -92,20 +92,27 @@ namespace Entrada
                    2. Se hace un OR (matemática discreta) con el primer byte, al cual automáticamente se le llenan los 8 ceros 
                    del principio con los últimos 8 valores del segundo byte */
 
-                float muestra32bits = (float)(muestra/32768.0f);
+                float muestra32bits = (float)(muestra / 32768.0f);
                 acumulador += Math.Abs(muestra32bits);
 
                 if (i / 2 < numeroDeMuestrasComplejas)
                 {
-                    señalCompleja[i/2].X = muestra32bits;
+                    señalCompleja[i / 2].X = muestra32bits;
                 }
             }
             /* Puesto que cada muestra son 2 bytes, divides entre 2 el número de bytes grabados para dividir lo acumulado entre
                el número de muestras (para obtener el promedio) */
             float promedio = acumulador / (bytesGrabados / 2.0f);
             sld_Microfono.Value = (double)promedio;
+            
+            if (promedio > 0)
+            {
+                FastFourierTransform.FFT(true, exponente, señalCompleja);
+            }
+            else
+            {
 
-            // FastFourierTransform.FFT();
+            }
         }
 
         private void btn_Detener_Click(object sender, RoutedEventArgs e)
