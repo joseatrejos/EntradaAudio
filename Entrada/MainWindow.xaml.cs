@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.Dsp;
+using System.Windows.Threading;
 
 namespace Entrada
 {
@@ -24,10 +25,37 @@ namespace Entrada
     public partial class MainWindow : Window
     {
         WaveIn waveIn;
+        float frecuenciaFundamental = 0;
+        DispatcherTimer timer;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(100);
+            timer.Tick += Timer_Tick;
+            timer.Tick += Timer_Tick;
+
             LlenarComboDispositivos();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if (frecuenciaFundamental < 500)
+            {
+                Canvas.SetLeft(imgcarro, 0);
+            }
+            else
+            {
+                var leftCarro = Canvas.GetLeft(imgcarro);
+                //Canvas.SetLeft(imgcarro, leftCarro + (frecuenciaFundamental / 500.0) * 0.6);
+
+                canvas.Children.Clear();
+                ImageBrush imageBrush = new ImageBrush();
+                imageBrush.ImageSource = new BitmapImage(new Uri("Avion.jpg"));
+                canvas.Background = imageBrush; 
+            }
         }
 
         public void LlenarComboDispositivos()
@@ -46,6 +74,8 @@ namespace Entrada
 
         private void btn_Iniciar_Click(object sender, RoutedEventArgs e)
         {
+            timer.Start();
+
             waveIn = new WaveIn();
 
             // Formato de Audio (Sample Rate, Bit Depth, Channels)
@@ -78,7 +108,7 @@ namespace Entrada
             } while (bitsMaximos < numeroDeMuestras);
 
             numeroDeMuestrasComplejas = bitsMaximos / 2;
-            exponente--;
+            exponente -= 2;
 
             Complex[] señalCompleja = new Complex[numeroDeMuestrasComplejas];
 
@@ -108,10 +138,18 @@ namespace Entrada
             if (promedio > 0)
             {
                 FastFourierTransform.FFT(true, exponente, señalCompleja);
-            }
-            else
-            {
+                float[] valoresAbsolutos = new float[señalCompleja.Length];
+                for(int i = 0; i < señalCompleja.Length; i++)
+                {                                               // Para obtener el valor absoluto de un número complejo se necesita sacar la raíz cuadrada
+                    valoresAbsolutos[i] = (float)Math.Sqrt(     // de la suma de los cuadrados tanto de la parte imaginaria como de la parte real   |a + bi|
+                        (señalCompleja[i].X * señalCompleja[i].X) + (señalCompleja[i].Y * señalCompleja[i].Y));
+                }
+                    // El arreglo valoresAbsolutos se vuelve una lista indexada (posición de cada valor del arreglo) y jalamos el valor más alto
+                int indiceSeñalConMasPresencia = valoresAbsolutos.ToList().IndexOf(valoresAbsolutos.Max());
 
+                frecuenciaFundamental = (float)indiceSeñalConMasPresencia * (float)waveIn.WaveFormat.SampleRate / (float)valoresAbsolutos.Length;
+
+                lbl_Frecuencia.Text = frecuenciaFundamental.ToString("f") + " Hz";
             }
         }
 
