@@ -16,6 +16,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.Dsp;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace Entrada
 {
@@ -25,8 +26,11 @@ namespace Entrada
     public partial class MainWindow : Window
     {
         WaveIn waveIn;
-        float frecuenciaFundamental = 0;
+        Stopwatch cronometro;
+        float frecuenciaFundamental = 0.0f;
         DispatcherTimer timer;
+        string letraAnterior = "";
+        string letraActual = "";
 
         public MainWindow()
         {
@@ -36,6 +40,8 @@ namespace Entrada
             timer.Interval = TimeSpan.FromMilliseconds(100);
             timer.Tick += Timer_Tick;
             timer.Tick += Timer_Tick;
+
+            cronometro = new Stopwatch();
 
             LlenarComboDispositivos();
         }
@@ -49,12 +55,32 @@ namespace Entrada
             else
             {
                 var leftCarro = Canvas.GetLeft(imgcarro);
-                //Canvas.SetLeft(imgcarro, leftCarro + (frecuenciaFundamental / 500.0) * 0.6);
+                /*Canvas.SetLeft(imgcarro, leftCarro + (frecuenciaFundamental / 500.0) * 0.6);
 
                 canvas.Children.Clear();
                 ImageBrush imageBrush = new ImageBrush();
                 imageBrush.ImageSource = new BitmapImage(new Uri("Avion.jpg"));
-                canvas.Background = imageBrush; 
+                canvas.Background = imageBrush; */
+            }
+            if(letraActual != "" && letraActual == letraAnterior)
+            {
+                // Evaluar si ya pasó un segundo
+                if (cronometro.ElapsedMilliseconds >= 1000)
+                {
+                    lbl_Nota.AppendText(letraActual + "");
+                    letraActual = "";
+                    cronometro.Restart();
+                    if(lbl_Nota.Text.Length >= 4)
+                    {
+                        string eo = lbl_Nota.Text.Substring(lbl_Nota.Text.Length - 4, 4);
+                        if (eo == "E O ")
+                            lbl_EO.Visibility = Visibility.Visible;
+                    }
+                }
+            }
+            else
+            {
+                cronometro.Restart();
             }
         }
 
@@ -148,6 +174,31 @@ namespace Entrada
                 int indiceSeñalConMasPresencia = valoresAbsolutos.ToList().IndexOf(valoresAbsolutos.Max());
 
                 frecuenciaFundamental = (float)indiceSeñalConMasPresencia * (float)waveIn.WaveFormat.SampleRate / (float)valoresAbsolutos.Length;
+
+                letraAnterior = letraActual;
+
+                if (frecuenciaFundamental >= 5 && frecuenciaFundamental <= 550)
+                {
+                    letraActual = "A ";
+                }
+                else if (frecuenciaFundamental >= 600 && frecuenciaFundamental <= 650)
+                {
+                    letraActual = "E ";
+                }
+                else if (frecuenciaFundamental >= 700 && frecuenciaFundamental <= 750)
+                {
+                    letraActual = "I ";
+                }
+                else if (frecuenciaFundamental >= 800 && frecuenciaFundamental <= 850)
+                {
+                    letraActual = "O ";
+                }
+                else if (frecuenciaFundamental >= 900 && frecuenciaFundamental <= 950)
+                {
+                    letraActual = "U ";
+                }
+                else
+                    letraActual = "";
 
                 lbl_Frecuencia.Text = frecuenciaFundamental.ToString("f") + " Hz";
             }

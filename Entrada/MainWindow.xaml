@@ -25,5 +25,7 @@
         <Canvas x:Name="canvas" HorizontalAlignment="Left" Height="179" Margin="40,230,0,0" VerticalAlignment="Top" Width="254">
             <Image x:Name="imgcarro" Height="183" Width="254" Canvas.Top="-1" Source="carro-cruz-azul.jpg" RenderTransformOrigin="0.006,0.571" />
         </Canvas>
+        <TextBox x:Name="lbl_Nota" HorizontalAlignment="Left" Height="43" Margin="398,151,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="151"/>
+        <TextBlock x:Name="lbl_EO" Visibility="Hidden" HorizontalAlignment="Left" Margin="398,249,0,0" TextWrapping="Wrap" Text="EO" VerticalAlignment="Top" Height="36" Width="151"/>
     </Grid>
 </Window>
